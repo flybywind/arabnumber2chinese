@@ -22,7 +22,7 @@ var app = new Vue({
                 v = Math.floor(v / CHINESE_SECTION);
                 sec_idx++;
                 if (section == 0) continue;
-                var zero_prefix = (v > 0 && section < CHINESE_SECTION/10) ? this.ChineseSymbole[0] : "";
+                var zero_prefix = (v > 0 && section < CHINESE_SECTION / 10) ? this.ChineseSymbole[0] : "";
                 chn_num = zero_prefix + this.Arab2Chn_section(section) + unit + chn_num;
             }
             return chn_num;
@@ -40,7 +40,7 @@ var app = new Vue({
                     continue;
                 }
                 if (n > 0) {
-                    if (n == 1 && unit == this.ChineseUnit[1]) {
+                    if (n == 1 && unit == this.ChineseUnit[1] && v == 0) {
                         s = "";
                     }
                     num_str = s + unit + num_str;
@@ -53,6 +53,36 @@ var app = new Vue({
                 }
             }
             return num_str;
+        },
+    },
+    computed: {
+        ChineseNumLength: function() {
+            return Math.max(9, this.ChineseNum.length + 0.5);
+        },
+    },
+    filters: {
+        thousandth: {
+            read: function(v) {
+                var str = "",
+                    comma = ",";
+
+                while (v > 0) {
+                    var left = "" + (v % 1000);
+                    while (left.length < 3) {
+                        left = "0" + left;
+                    }
+                    if (str == "") {
+                        str = left;
+                    } else {
+                        str = left + "," + str;
+                    }
+                    v = Math.floor(v / 1000);
+                }
+                return str;
+            },
+            write: function(v) {
+                return parseInt(v.replace(",", ""));
+            },
         },
     }
 })
