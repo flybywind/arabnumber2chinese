@@ -5,7 +5,7 @@ var app = new Vue({
         ChineseNum: "",
         //ChineseSymbole: ["零", "壹", "贰", "叁", "肆", "伍", "陆", "柒", "捌", "玖"],
         ChineseSymbole: ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九"],
-        ChineseSection: ["", "万", "亿", "万亿" ],
+        ChineseSection: ["", "万", "亿", "万亿"],
         //ChineseUnit: ["", "拾", "佰", "仟"],
         ChineseUnit: ["", "十", "百", "千"],
         ChineseUnitArab: {
@@ -75,45 +75,57 @@ var app = new Vue({
             return num_str;
         },
         Chinese2Arab: function(str) {
-            var n = 0;
+            var n = 0,
+                si = 0;
             for (var i = 0; i < str.length; i++) {
                 var n2 = this.ChineseUnitArab[str[i]];
-                if (n2 == 0) continue;
-                if (n2 > 9) {
-                    if (n == 0) {
-                        if (n2 == 10) {
-                            n = 10;
-                        } else {
-                            console.log("invalid");
-                            return 0;
-                        }
+                if (n2 > 1000) {
+                    var n3 = this.Chinese2Arab_section(str.slice(si, i));
+                    if (n3 >= 0) {
+                        n += n3 * n2;
                     } else {
-                    // 只有万以上的才能作为整体乘
-                        if (n2 > 1000) {
-                            n *= n2;
-                        } else {
-                            console.log("invalid");
-                            return 0;
-                        }
+                        return 0;
                     }
-                } else {
-                    var n3 = 1;
+                    si = i + 1;
+                }
+            }
+            var n2 = this.Chinese2Arab_section(str.slice(si));
+            if (n2 < 0) {
+                return 0;
+            }
+            return n + n2;
+        },
+        Chinese2Arab_section: function(str) {
+            var n = 0;
+
+            for (var i = 0; i < str.length; i++) {
+                var n2 = this.ChineseUnitArab[str[i]];
+                if (typeof n2 == "undefined") {
+                    // 使用中文拼音输入法时，输入框首先接收到的是拼音，然后才会变成汉字，
+                    // 在拼音阶段，可能导致这个报错：
+                    console.log("非法字符");
+                    continue;
+                }
+                if (n2 === 0) continue;
+                var n3 = 1;
+                if (n2 < 10) {
                     if (++i < str.length) {
                         n3 = this.ChineseUnitArab[str[i]];
                         if (n3 < 10) {
-                            console.log("invalid");
-                            return 0;
+                            console.log("invalid: 数字之间缺少单位");
+                            return -1;
                         }
                     }
-                    if (n3 > 1000) {
-                        n = (n + n2) * n3;
-                    } else {
-                        n += n2 * n3;
+                } else {
+                    if (!(n2 == 10 && n == 0)) {
+                        console.log("invalid: 单位前面缺少数字");
+                        return -1;
                     }
                 }
+                n += n2 * n3;
             }
             return n;
-        }
+        },
     },
     computed: {
         ChineseNumLength: function() {
@@ -125,7 +137,7 @@ var app = new Vue({
             read: function(v) {
                 var str = "",
                     comma = ",";
-
+                
                 while (v > 0) {
                     var left = "" + (v % 1000);
                     v = Math.floor(v / 1000);
