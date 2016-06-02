@@ -5,9 +5,27 @@ var app = new Vue({
         ChineseNum: "",
         //ChineseSymbole: ["零", "壹", "贰", "叁", "肆", "伍", "陆", "柒", "捌", "玖"],
         ChineseSymbole: ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九"],
-        ChineseSection: ["", "万", "亿", "万亿", "亿亿"],
+        ChineseSection: ["", "万", "亿", "万亿" ],
         //ChineseUnit: ["", "拾", "佰", "仟"],
         ChineseUnit: ["", "十", "百", "千"],
+        ChineseUnitArab: {
+            "零": 0,
+            "一": 1,
+            "二": 2,
+            "三": 3,
+            "四": 4,
+            "五": 5,
+            "六": 6,
+            "七": 7,
+            "八": 8,
+            "九": 9,
+            "十": 10,
+            "百": 100,
+            "千": 1000,
+            "万": 10000,
+            "亿": 100000000,
+            "万亿": 1000000000000,
+        }
     },
     methods: {
         Arab2Chn: function(v) {
@@ -56,6 +74,46 @@ var app = new Vue({
             }
             return num_str;
         },
+        Chinese2Arab: function(str) {
+            var n = 0;
+            for (var i = 0; i < str.length; i++) {
+                var n2 = this.ChineseUnitArab[str[i]];
+                if (n2 == 0) continue;
+                if (n2 > 9) {
+                    if (n == 0) {
+                        if (n2 == 10) {
+                            n = 10;
+                        } else {
+                            console.log("invalid");
+                            return 0;
+                        }
+                    } else {
+                    // 只有万以上的才能作为整体乘
+                        if (n2 > 1000) {
+                            n *= n2;
+                        } else {
+                            console.log("invalid");
+                            return 0;
+                        }
+                    }
+                } else {
+                    var n3 = 1;
+                    if (++i < str.length) {
+                        n3 = this.ChineseUnitArab[str[i]];
+                        if (n3 < 10) {
+                            console.log("invalid");
+                            return 0;
+                        }
+                    }
+                    if (n3 > 1000) {
+                        n = (n + n2) * n3;
+                    } else {
+                        n += n2 * n3;
+                    }
+                }
+            }
+            return n;
+        }
     },
     computed: {
         ChineseNumLength: function() {
@@ -93,4 +151,7 @@ var app = new Vue({
 
 app.$watch("ArabNum", function(v) {
     this.ChineseNum = this.Arab2Chn(v);
+});
+app.$watch("ChineseNum", function(v) {
+    this.ArabNum = this.Chinese2Arab(v);
 });
