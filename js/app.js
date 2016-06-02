@@ -3,9 +3,11 @@ var app = new Vue({
     data: {
         ArabNum: 0,
         ChineseNum: "",
-        ChineseSymbole: ["零", "壹", "贰", "叁", "肆", "伍", "陆", "柒", "捌", "玖"],
+        //ChineseSymbole: ["零", "壹", "贰", "叁", "肆", "伍", "陆", "柒", "捌", "玖"],
+        ChineseSymbole: ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九"],
         ChineseSection: ["", "万", "亿", "万亿", "亿亿"],
-        ChineseUnit: ["", "拾", "佰", "仟"],
+        //ChineseUnit: ["", "拾", "佰", "仟"],
+        ChineseUnit: ["", "十", "百", "千"],
     },
     methods: {
         Arab2Chn: function(v) {
@@ -68,20 +70,22 @@ var app = new Vue({
 
                 while (v > 0) {
                     var left = "" + (v % 1000);
-                    while (left.length < 3) {
-                        left = "0" + left;
+                    v = Math.floor(v / 1000);
+                    if (v > 0) {
+                        while (left.length < 3) {
+                            left = "0" + left;
+                        }
                     }
                     if (str == "") {
                         str = left;
                     } else {
                         str = left + "," + str;
                     }
-                    v = Math.floor(v / 1000);
                 }
                 return str;
             },
             write: function(v) {
-                return parseInt(v.replace(",", ""));
+                return parseInt(v.replace(/,/g, ""));
             },
         },
     }
